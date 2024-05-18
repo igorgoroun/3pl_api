@@ -1,0 +1,73 @@
+# Тестування системи авторизації
+###
+
+### Запитуємо токен
+POST http://127.0.0.1:8000/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username = johndoe &
+password = dreams
+
+> {%
+    client.test("Token obtained", function () {
+       client.assert(response.status === 200, "Response status is not 200");
+    });
+    client.global.set("auth_token", response.body.access_token);
+%}
+###
+
+### Запит на створення замовлення на завантаження - позитивний
+POST http://127.0.0.1:8000/transfer/inbound
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+    "reference": "202405/32",
+    "inbound_date": "2024-05-21",
+    "representative_name": "Коваленко А.В.",
+    "representative_tel": "+380670000000",
+    "products": [
+        {
+            "default_code": "M1280",
+            "barcode": "83204301023929",
+            "name": "Gigabyte M1280 RL",
+            "description": "Материнська плата Gigabyte M1280 RL",
+            "quantity": 43,
+            "price": 4560.65
+        },
+        {
+            "default_code": "AS45332",
+            "barcode": "832343401023929",
+            "name": "ASUS 45332",
+            "description": "Материнська плата ASUS 45332",
+            "quantity": 24,
+            "price": 3467.00
+        }
+    ]
+}
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+###
+
+### Запит на створення замовлення на завантаження - з невалідною структурою
+#POST http://127.0.0.1:8000/transfer/inbound
+#Authorization: Bearer {{auth_token}}
+#Content-Type: application/json
+#
+#{
+#    "reference": "202405/04",
+#    "inbound_dates": "2024-05-25"
+#}
+#
+#> {%
+#    client.test("Invalid structure", function () {
+#        client.assert(response.status === 422, "Should be 422 - Unprocessable Entity");
+#    });
+#%}
+###
+
+

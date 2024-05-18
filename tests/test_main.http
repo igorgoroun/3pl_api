@@ -1,0 +1,59 @@
+# Test your FastAPI endpoints
+
+GET http://127.0.0.1:8000/
+Accept: application/json
+#
+####
+#
+POST http://127.0.0.1:8000/transfer/inbound
+Accept: application/json
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 401, "Response status is not 401");
+    });
+%}
+
+###
+
+### test user
+GET http://127.0.0.1:8000/auth/testuser
+Accept: application/json
+###
+
+
+### Authorization by token, part 2. Retrieve and save token.
+POST http://127.0.0.1:8000/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username = johndoe &
+password = dreams
+#{
+#  "username": "johndoe",
+#  "password": "secret"
+#}
+
+> {%
+    client.global.set("auth_token", response.body.access_token);
+    client.test("Token obtained", function () {
+       client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
+### Authorization by token, part 2. Use token to authorize.
+POST http://127.0.0.1:8000/transfer/inbound
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "reference": "SOME NEW TRANSFER"
+}
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
+
+

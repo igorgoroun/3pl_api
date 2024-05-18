@@ -1,0 +1,57 @@
+# Тестування системи авторизації
+###
+
+### Запитуємо токен - негативний тест
+POST http://127.0.0.1:8000/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username = johndoe &
+password = wrongpassw
+
+> {%
+    client.test("Invalid credentials", function () {
+       client.assert(response.status === 401, "Should be 401 - unauthorized");
+    });
+%}
+###
+
+### Тестовий запит БЕЗ ТОКЕНА на кінцеву точки яка потребує авторизації
+GET http://127.0.0.1:8000/transfer/test
+Content-Type: application/json
+
+> {%
+    client.test("Unauthorized", function () {
+        client.assert(response.status === 401, "Should be 401 - unauthorized");
+    });
+%}
+###
+
+### Запитуємо токен - позитивний тест
+POST http://127.0.0.1:8000/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username = johndoe &
+password = dreams
+
+> {%
+    client.test("Token obtained", function () {
+       client.assert(response.status === 200, "Response status is not 200");
+    });
+    client.global.set("auth_token", response.body.access_token);
+    client.log("Received token: " + response.body.access_token);
+%}
+###
+
+### Тестовий запит з токеном на кінцеву точки яка потребує авторизації
+GET http://127.0.0.1:8000/transfer/test
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
+
+
