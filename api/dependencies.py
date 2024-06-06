@@ -29,6 +29,26 @@ cache_db = Redis(
 )
 
 
+class Product(BaseModel):
+    default_code: str
+    barcode: str = None
+    quantity: int
+
+
+class ResponseMessage(BaseModel):
+    uuid: UUID4 = None
+    message: str = None
+
+
+class ResponseState(BaseModel):
+    uuid: UUID4 = Field(default_factory=uuid4)
+    state: str
+
+
+class JobStateRequest(BaseModel):
+    uuid: UUID4
+
+
 class DramatiqJobOptions(BaseModel):
     redis_message_id: UUID4 = Field(default_factory=uuid4)
 
